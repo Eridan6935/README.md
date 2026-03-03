@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Простой Платформер</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; background-color: #fafafa; }
+  </style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// Игрок
+let player = {
+  x: 50,
+  y: 50,
+  width: 20,
+  height: 20,
+  speedX: 0,
+  jumpSpeed: 10,
+  gravity: 0.5,
+  onGround: false
+};
+
+// Платформы
+let platforms = [
+  { x: 0, y: canvas.height - 20, w: canvas.width },
+];
+
+// Управление
+document.addEventListener("keydown", e => {
+  if(e.code === 'ArrowLeft') player.speedX -= 5;
+  else if(e.code === 'ArrowRight') player.speedX += 5;
+  else if(e.code === 'Space' && player.onGround) player.y -= player.jumpSpeed;
+});
+
+document.addEventListener("keyup", () => player.speedX = 0);
+
+// Основной игровой цикл
+function update() {
+  // Применение гравитации
+  player.y += player.gravity;
+
+  // Проверка столкновений с платформами
+  for(let p of platforms){
+    if(player.x + player.width > p.x &&
+       player.x < p.x + p.w &&
+       player.y + player.height >= p.y &&
+       player.y <= p.y){
+      player.y = p.y - player.height;
+      player.onGround = true;
+    }
+  }
+
+  // Ограничиваем движение игрока по экрану
+  if(player.x < 0 || player.x + player.width > canvas.width) player.speedX *= -1;
+  player.x += player.speedX;
+
+  draw();
+}
+
+// Отрисовка игры
+function draw(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // очистка экрана
+
+  // Рисуем платформы
+  ctx.fillStyle = '#888';
+  for(let p of platforms){
+    ctx.fillRect(p.x, p.y, p.w, 20);
+  }
+
+  // Рисуем игрока
+  ctx.fillStyle = '#ff6b6b'; // Красный квадратик
+  ctx.fillRect(player.x, player.y, player.width, player.height);
+
+  requestAnimationFrame(update);
+}
+
+update(); // запускаем игру
+</script>
+
+</body>
+</html>
