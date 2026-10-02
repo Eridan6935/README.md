@@ -1,0 +1,214 @@
+"""
+Высшая математика: Операции над матрицами.
+Преподаватель: Касаев Исмет Ридванович
+Студент: Фамилия И.О., группа РПО 25/2
+
+Модуль содержит кастомные функции для работы с матрицами
+без использования сторонних библиотек (NumPy и т.д.).
+"""
+
+def matrix_transpose(matrix: list[list[float]]) -> list[list[float]]:
+    """
+    Транспонирование матрицы (строки становятся столбцами).
+
+    :param matrix: Двумерный список m x n
+    :return: Двумерный список n x m (транспонированная матрица)
+    :raises ValueError: Если матрица пустая или строки имеют разную длину
+    """
+    if not matrix or not matrix[0]:
+        raise ValueError("Ошибка: Матрица не может быть пустой.")
+
+    rows = len(matrix)
+    cols = len(matrix[0])
+
+    # Проверка прямоугольности матрицы
+    for row in matrix:
+        if len(row) != cols:
+            raise ValueError("Ошибка: Все строки матрицы должны иметь одинаковую длину.")
+
+    # Создание транспонированной матрицы размерностью cols x rows
+    transposed = [[matrix[r][c] for r in range(rows)] for c in range(cols)]
+    return transposed
+
+
+def matrix_add(a: list[list[float]], b: list[list[float]]) -> list[list[float]]:
+    """
+    Поэлементное сложение двух матриц одинакового размера.
+
+    :param a: Первая матрица (m x n)
+    :param b: Вторая матрица (m x n)
+    :return: Результат сложения (m x n)
+    :raises ValueError: Если размеры матриц не совпадают или они невалидны
+    """
+    if not a or not b or not a[0] or not b[0]:
+        raise ValueError("Ошибка: Матрицы не могут быть пустыми.")
+
+    rows_a, cols_a = len(a), len(a[0])
+    rows_b, cols_b = len(b), len(b[0])
+
+    # Проверка корректности размеров
+    for row in a:
+        if len(row) != cols_a:
+            raise ValueError("Ошибка: Невалидный размер первой матрицы (разная длина строк).")
+    for row in b:
+        if len(row) != cols_b:
+            raise ValueError("Ошибка: Невалидный размер второй матрицы (разная длина строк).")
+
+    if rows_a != rows_b or cols_a != cols_b:
+        raise ValueError(
+            f"Ошибка размерности при сложении: матрица A имеет размер {rows_a}x{cols_a}, "
+            f"а матрица B имеет размер {rows_b}x{cols_b}. Размеры должны строго совпадать!"
+        )
+
+    # Поэлементное сложение
+    result = [[a[r][c] + b[r][c] for c in range(cols_a)] for r in range(rows_a)]
+    return result
+
+
+def matrix_multiply(a: list[list[float]], b: list[list[float]]) -> list[list[float]]:
+    """
+    Умножение двух матриц (строка на столбец).
+
+    :param a: Первая матрица размерностью m x k
+    :param b: Вторая матрица размерностью k x n
+    :return: Результат умножения размерностью m x n
+    :raises ValueError: Если число столбцов A не равно числу строк B
+    """
+    if not a or not b or not a[0] or not b[0]:
+        raise ValueError("Ошибка: Матрицы не могут быть пустыми.")
+
+    rows_a, cols_a = len(a), len(a[0])
+    rows_b, cols_b = len(b), len(b[0])
+
+    # Проверка целостности структур данных
+    for row in a:
+        if len(row) != cols_a:
+            raise ValueError("Ошибка: Невалидный размер первой матрицы.")
+    for row in b:
+        if len(row) != cols_b:
+            raise ValueError("Ошибка: Невалидный размер второй матрицы.")
+
+    # Главное правило умножения матриц: cols_A == rows_B
+    if cols_a != rows_b:
+        raise ValueError(
+            f"Ошибка размерности при умножении: количество столбцов матрицы A ({cols_a}) "
+            f"не совпадает с количеством строк матрицы B ({rows_b})."
+        )
+
+    # Вычисление произведения (m x n)
+    result = []
+    for r in range(rows_a):
+        row_result = []
+        for c in range(cols_b):
+            # Вычисление элемента c_ij = sum(a_ik * b_kj)
+            element_sum = sum(a[r][k] * b[k][c] for k in range(cols_a))
+            row_result.append(element_sum)
+        result.append(row_result)
+
+    return result
+
+
+def print_matrix(matrix: list[list[float]], title: str = "Матрица"):
+    """Вспомогательная функция для красивого вывода матрицы в консоль."""
+    print(f"\n--- {title} ---")
+    for row in matrix:
+        formatted_row = " ".join(f"{val:8.2f}".rstrip('0').rstrip('.') for val in row)
+        print(f"[ {formatted_row} ]")
+
+
+def input_matrix(name: str) -> list[list[float]]:
+    """Функция пользовательского ввода матрицы с консоли с валидацией."""
+    print(f"\n=== Ввод матрицы {name} ===")
+    while True:
+        try:
+            rows = int(input(f"Введите количество строк матрицы {name}: "))
+            cols = int(input(f"Введите количество столбцов матрицы {name}: "))
+            if rows <= 0 or cols <= 0:
+                print("Размеры должны быть положительными числами!")
+                continue
+            break
+        except ValueError:
+            print("Ошибка ввода! Введите целые числа.")
+
+    matrix = []
+    print(f"Введите элементы матрицы {name} по строкам (через пробел):")
+    for i in range(rows):
+        while True:
+            try:
+                line = input(f"Строка {i + 1} ({cols} элемента/ов): ").strip().split()
+                if len(line) != cols:
+                    print(f"Ошибка: ожидалось {cols} элементов, получено {len(line)}.")
+                    continue
+                row = [float(x) for x in line]
+                matrix.append(row)
+                break
+            except ValueError:
+                print("Ошибка: все элементы должны быть числами!")
+
+    return matrix
+
+
+def matrix_calculator():
+    """Интерактивный консольный калькулятор матриц."""
+    print("\n=======================================================")
+    print("      КАЛЬКУЛЯТОР МАТРИЦ (Без сторонних библиотек)     ")
+    print("=======================================================")
+
+    while True:
+        print("\nВыберите операцию:")
+        print("1. Сложение двух матриц (A + B)")
+        print("2. Транспонирование матрицы (A^T)")
+        print("3. Умножение двух матриц (A * B)")
+        print("4. Вычислить выражение задания: C = (A + B^T) * A")
+        print("5. Выход из программы")
+
+        choice = input("\nВаш выбор (1-5): ").strip()
+
+        try:
+            if choice == "1":
+                a = input_matrix("A")
+                b = input_matrix("B")
+                res = matrix_add(a, b)
+                print_matrix(res, "Результат сложения A + B")
+
+            elif choice == "2":
+                a = input_matrix("A")
+                res = matrix_transpose(a)
+                print_matrix(res, "Транспонированная матрица A^T")
+
+            elif choice == "3":
+                a = input_matrix("A")
+                b = input_matrix("B")
+                res = matrix_multiply(a, b)
+                print_matrix(res, "Результат умножения A * B")
+
+            elif choice == "4":
+                print("\n Вычисление выражения из контрольного задания C = (A + B^T) * A...")
+                a = [[1.0, 2.0], [3.0, 0.0]]
+                b = [[4.0, 1.0], [-2.0, 5.0]]
+
+                print_matrix(a, "Исходная матрица A")
+                print_matrix(b, "Исходная матрица B")
+
+                b_t = matrix_transpose(b)
+                print_matrix(b_t, "1) Транспонированная матрица B^T")
+
+                a_plus_bt = matrix_add(a, b_t)
+                print_matrix(a_plus_bt, "2) Промежуточная сумма (A + B^T)")
+
+                c = matrix_multiply(a_plus_bt, a)
+                print_matrix(c, "3) Итоговый результат C = (A + B^T) * A")
+
+            elif choice == "5":
+                print("Завершение работы калькулятора. До свидания!")
+                break
+            else:
+                print("Ошибка: Выберите число от 1 до 5.")
+
+        except ValueError as err:
+            print(f"\n[ОШИБКА РАЗМЕРНОСТИ / ДАННЫХ]: {err}")
+
+
+if __name__ == "__main__":
+    # Запуск интерактивного калькулятора
+    matrix_calculator()
